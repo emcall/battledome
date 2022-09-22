@@ -76,90 +76,57 @@
 
 	}
 	class BattleParty {
-		public $pet1;
-		public $pet2;
-		public $pet3;
-		public $pet4;
+		public $petArray = array();
 		
 		function __construct($pet1, $pet2, $pet3, $pet4){
-			$this->pet1 = $pet1;
-			$this->pet2 = $pet2;
-			$this->pet3 = $pet3;
-			$this->pet4 = $pet4;
-			
+			$this->petArray[0] = $pet1;
+			$this->petArray[1] = $pet2;
+			$this->petArray[2] = $pet3;
+			$this->petArray[3] = $pet4;
 		}
 		function check_loss(){
-			if($this->pet1->current_hp <= 0 || $this->pet2->current_hp <= 0 || $this->pet3->current_hp <= 0 || $this->pet4->current_hp <= 0)
-				return false;
+			for($i = 0; $i < 4; $i++){
+				if ($this->petArray[$i]->current_hp > 0){
+					return false;
+				}
+			}
 			return true;
+
 			}
 
 		function display_images(){
-			echo "<td>" . $this->pet1->display_pet_img() . "</td>";
-			echo "<td>" . $this->pet2->display_pet_img() . "</td>";
-			echo "<td>" . $this->pet3->display_pet_img() . "</td>";
-			echo "<td>" . $this->pet4->display_pet_img() . "</td>";
-			
-			
+			for($i = 0; $i < 4; $i++){
+				echo "<td>" . $this->petArray[$i]->display_pet_img() . "</td>";
+			}	
 		}
 		function display_names(){
-			echo "<td>" . $this->pet1->name . "</td>";
-			echo "<td>" . $this->pet2->name . "</td>";
-			echo "<td>" . $this->pet3->name . "</td>";
-			echo "<td>" . $this->pet4->name . "</td>";
+			for($i = 0; $i < 4; $i++){
+				echo "<td>" . $this->petArray[$i]->name . "</td>";
+			}
 		}
 
+
 		function display_hp(){
-			echo $this->pet1->display_hp();	
-			echo $this->pet2->display_hp();	
-			echo $this->pet3->display_hp();
-			echo $this->pet4->display_hp();	
+			for($i = 0; $i < 4; $i++){
+				echo $this->petArray[$i]->display_hp();
+			}
 		}
 
 		//TODO fix this shameful wet code.
 		function display_attacks(){
-
-			if($this->pet1->current_hp >0)
-				echo ("<td><select id='pet1_attack'>
-					<option value='closeattack'>Close Attack</option>
-					<option value='rangedattack'>Ranged Attack</option>
-					<option value='defended'>Defend</option>
-					</select></td>
-					");
-			else{
-				echo ("<td></td>");
+			for($i = 0; $i < 4; $i++){
+				if($this->petArray[$i]->current_hp >0)
+					echo ("<td><select id='pet" . $i . "_attack'>
+						<option value='closeattack'>Close Attack</option>
+						<option value='rangedattack'>Ranged Attack</option>
+						<option value='defended'>Defend</option>
+						</select></td>
+						");
+				else{
+					echo ("<td></td>");
+				}
 			}
 					
-			if($this->pet2->current_hp >0)
-			echo ("<td><select id='pet2_attack'>
-					<option value='closeattack'>Close Attack</option>
-					<option value='rangedattack'>Ranged Attack</option>
-					<option value='defended'>Defend</option>
-					</select></td>
-					");
-					else{
-						echo ("<td></td>");
-					}
-			if($this->pet3->current_hp >0)
-				echo ("<td><select id='pet3_attack'>
-					<option value='closeattack'>Close Attack</option>
-					<option value='rangedattack'>Ranged Attack</option>
-					<option value='defended'>Defend</option>
-					</select></td>
-					");
-					else{
-						echo ("<td></td>");
-					}
-			if($this->pet4->current_hp >0)
-				echo ("<td><select id='pet4_attack'>
-					<option value='closeattack'>Close Attack</option>
-					<option value='rangedattack'>Ranged Attack</option>
-					<option value='defended'>Defend</option>
-					</select></td>
-					");
-					else{
-						echo ("<td></td>");
-					}
 		}
 
 		function battle_round(){
