@@ -126,11 +126,23 @@
 					echo ("<td><input type='hidden' name='pet" . ($i+1) . "_attack' value='0'></td>");
 				}
 			}
-					
+		}
+		function display_targets($targets){
+			for($i = 0; $i < 4; $i++){
+				
+				if($this->petArray[$i]->current_hp >0){
+					echo ("<td><select id='pet" . ($i + 1) . "_target'>");
+					foreach ($targets as $target){
+							echo ("<option value='" . $target . "'>" . $target . "</option>");
+						}
+					}
+				else{
+					echo "<td></td>";
+				}
+				}
+			}
 		}
 
-		
-	}
 
 	class Opponent extends Combatant{
 		//image handling has to change for this for a couple reasons:
@@ -146,10 +158,11 @@
 	class OpponentParty extends BattleParty{
 
 		function get_valid_targets(){
-			$targets = ""; 
-			foreach ($this->petArray as $opponent){
-				if ($opponent->current_hp >0)
-					$targets .= "<option value='" . $opponent->name . "'>" . $opponent->name . "</option> \n";
+			$targets =  array(); 
+
+			for($i = 0; $i < count($this->petArray); $i++ ){
+				if ($this->petArray[$i]->current_hp >0)
+					$targets[$i] = $this->petArray[$i]->name ;
 			}
 			return $targets;
 		}
@@ -201,12 +214,10 @@ $opponentparty->display_hp();
 echo ("</tr><tr>");
 $battleparty->display_attacks();
 echo ("</tr><tr>");
-//TODO this shouldn't display for KO'd party members
+
 $targets = $opponentparty->get_valid_targets();
-for($i = 0; $i <4; $i++){
-	echo ("<td><select id='pet" . ($i + 1) . "_target'>");
-	echo $targets . "</td>";
-}
+$battleparty->display_targets($targets);
+
 
 echo ("</tr>\n</table> \n<input type='submit' action='POST'/></form>");
 ?>
