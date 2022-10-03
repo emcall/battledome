@@ -28,6 +28,11 @@ CONST defended_defense_boost = 5;
                 //TODO handle equipment/weapons. Figure they just increase atk/def
             }
     
+            function get_moves(){
+                //TODO this is where equipment will be checked for special abilities
+                return (["defended", "closeattack", "rangedattack"]);
+            }
+
             function deal_damage($attack_type){
                 $this->current_attack_type = $attack_type;
                     switch ($attack_type){

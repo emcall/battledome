@@ -1,9 +1,17 @@
 <?php
 require "classes.php";
 session_start();
-$battleparty = $_SESSION["battleparty"];
-$opponentparty = $_SESSION["opponentparty"];
+/* TODO this commented out bit is because battle and opponent party will be created on the fight page
+if (!isset($_SESSION["battleround"])){
+    $_SESSION["battleround"] = 0;
+    //process the challengers and the opponents here
 
+}
+else{
+    $_SESSION["battleround"]++; */
+    $battleparty = $_SESSION["battleparty"];
+    $opponentparty = $_SESSION["opponentparty"];
+//}
 
 //home team goes first
 for ($i = 0;  $i <4; $i++){
@@ -19,8 +27,15 @@ for ($i = 0;  $i <4; $i++){
 //now for the opponents
 foreach ($opponentparty->petArray as $opponent){
     if ($opponent->current_hp > 0){
-        $targets = $battleparty->get_valid_targets;
-        //TODO actually have them do anything lol
+        //first pick a target
+        $targets = $battleparty->get_valid_targets();
+        $chosentarget = rand(0, (count($targets)-1));
+        //then pick an attack
+        $moves = $opponent->get_moves();
+        $chosenmove = $moves[rand(0, count($moves)-1)];
+        $attack_power = $opponent->deal_damage($chosenmove);
+        $battleparty->petArray[$chosentarget]->take_damage($attack_power);
+        echo ("$opponent->name did  $attack_power damage to  pet$chosentarget");
     }
 
 }
@@ -34,7 +49,7 @@ if($opponentparty->check_loss()){
     echo "You win!";
 }
 
-
+echo ("ROUND " .  $_SESSION['battleround']);
 echo ("<form action='fight.php' method='post'> \n");
 
 
