@@ -15,6 +15,11 @@ CONST defended_defense_boost = 5;
             
             public $current_hp = 0;
             public $current_attack_type = 'closeattack';
+
+            public $close_attack_img;
+            public $ranged_attack_img;
+            public $defended_img;
+            public $downed_img;
             
             function __construct($combatant_number, $name, $species_color, $level, $attack, $defense, $max_hp){
                 $this->combatant_number = $combatant_number;
@@ -25,7 +30,33 @@ CONST defended_defense_boost = 5;
                 $this->defense = $defense;
                 $this->max_hp = $max_hp;
                 $this->current_hp = $max_hp;
+
+                $this->closeattack_img = "https://images.neopets.com/pets/closeattack/" . $this->species_color . "_right.gif";
+                $this->rangedattack_img = "https://images.neopets.com/pets/rangedattack/" . $this->species_color . "_right.gif";
+                $this->defended_img = "https://images.neopets.com/pets/defended/" . $this->species_color . "_right.gif";
+                $this->downed_img = "https://images.neopets.com/pets/hit/" . $this->species_color . "_right.gif";
                 //TODO handle equipment/weapons. Figure they just increase atk/def
+            }
+
+            //for non-neopet opponents. should be called right after construct
+            //"host" is neopets or leopets
+            //"is_pet" means if it's using pet images or something else. 
+            //if something else, then image URLs need to be provided
+            function set_images($host, $is_pet, $direction, $closeattack_img = null, $rangedattack_img = null, $defended_img = null, $downed_img = null){
+                if(!$is_pet){
+                    $this->closeattack_img = $closeattack_img;
+                    $this->rangedattack_img = $rangedattack_img;
+                    $this->defended_img = $defended_img;
+                    $this->downed_img = $downed_img; 
+                 }
+                else{
+                    $this->closeattack_img = $host . "/pets/closeattack/" . $this->species_color . "_$direction.gif";
+                    $this->rangedattack_img = $host . "/pets/rangedattack/" . $this->species_color . "_$direction.gif";
+                    $this->defended_img = $host .  "/pets/defended/" . $this->species_color . "_$direction.gif";
+                    $this->downed_img = $host . "/pets/hit/" . $this->species_color . "_$direction.gif";
+                    //TODO handle equipment/weapons. Figure they just increase atk/def
+                }
+
             }
     
             function get_moves(){
@@ -59,18 +90,28 @@ CONST defended_defense_boost = 5;
                     case "rangedattack":
                         $this->current_hp -= $incoming_attack_power/rangedattack_defense_boost;
                         return $this->current_hp;
-                        break;
+                    default:
+                        $this->current_hp -= $incoming_attack_power;
+                        return $this->current_hp;
                     }
     
                 
             }
             
-            //TODO have to keep in mind neo-hosted vs leo-hosted, i assume there's a flag in the db
-            function display_pet_img(){
+            function get_image(){
                 if ($this->current_hp <= 0)
-                    return "<img src='https://images.neopets.com/pets/hit/" . $this->species_color . "_right.gif'>";
-                return "<img src='https://images.neopets.com/pets/" . $this->current_attack_type . "/" . $this->species_color . "_right.gif'>";
-            }
+                    return $this->downed_img;
+                switch ($this->current_attack_type){
+                    case "closeattack":
+                        return $this->closeattack_img;
+                    case "rangedattack":
+                        return $this->rangedattack_img;
+                    case "defended":
+                        return $this->defended_img;
+                    default:
+                        return $this->closeattack_img;
+                }
+               }
     
             function display_hp(){
                 if ($this->current_hp <= 0)
@@ -101,7 +142,7 @@ CONST defended_defense_boost = 5;
     
             function display_images(){
                 foreach ($this->petArray as $pet){
-                    echo "<td>" . $pet->display_pet_img() . "</td>";
+                    echo "<td><img src='" . $pet->get_image() . "'></td>";
                 }	
             }
             function display_names(){
@@ -167,25 +208,46 @@ CONST defended_defense_boost = 5;
             }
     
     
-        class Opponent extends Combatant{
-            //image handling has to change for this for a couple reasons:
-            //if the image is of a pet then switch right to left 
-            //if the image is something else then we need an entirely new url
-            function display_pet_img(){
-                if ($this->current_hp <= 0)
-                    return "<img src='https://images.neopets.com/pets/hit/" . $this->species_color . "_left.gif'>";
-                return "<img src='https://images.neopets.com/pets/" . $this->current_attack_type . "/" . $this->species_color . "_left.gif'>";
-            }
 
-            
-        }
 
         class DisplayHandler {
 
+            //eventually will give this more flavor text options
             function narrate_attack($attacker, $dmg, $target){
-                return "$attacker hit $target for $dmg";
+                return "$attacker hit $target for $dmg HP!";
+            }
+            function narrate_win($winner){
+
             }
 
+            function display_table($battleparty, $opponentparty){
+                                
+                echo ("<form action='fight.php' method='post'> \n");
+
+
+                echo ("<table><tr>");
+                $battleparty->display_images();
+                echo ("<td width=10%></td>");
+                $opponentparty->display_images();
+                echo ("\n</tr><tr>");
+                $battleparty->display_names();
+                echo ("<td width=10%></td>");
+                $opponentparty->display_names();
+                echo ("\n</tr><tr>");
+                $battleparty->display_hp(); 
+                echo ("<td width=10%></td>");
+                $opponentparty->display_hp();
+
+                echo ("</tr><tr>");
+                $battleparty->display_attacks();
+                echo ("</tr><tr>");
+
+                $targets = $opponentparty->get_valid_targets();
+                $battleparty->display_targets($targets);
+
+
+                echo ("</tr>\n</table> \n<input type='submit' value='Fight!' action='POST'/></form>");
+            }
         }
 
         ?>
