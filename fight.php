@@ -9,9 +9,11 @@ echo "You are not currently in a battle! Would you like to start one?";
 return;
 }
 $battle = $_SESSION["battle"];
-$player_move_type = $_POST["player_attack"];
-
-$battle->process_round($player_move_type);
-$displayhandler = $_SESSION['displayhandler'];
+if(!isset($_POST["player_move"])){
+   $battle->display_battle();
+}
+else{
+    $battle->process_round($_POST["player_move"]);
+}
 
 ?>

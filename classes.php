@@ -1,91 +1,8 @@
 <?php
-
+require "displayhandler.php";
 //now ideally moves would have their own class to handle dynamic stuff like additional move types (heals etc) and differnet opponents having different abilities but that is a TODO for later
 
-    //handles frontend display
-    class DisplayHandler {
-        public $battle = null;
-        public $player = null;
-        public $opponent = null;
-
-        function __construct($battle){
-            $this->battle = $battle;
-            $this->player = $battle->player;
-            $this->opponent = $battle->opponent;
-        }
-
-        function display_hp_bar($isPlayer){
-            $bg_color = "green";
-            if($isPlayer){
-                switch($hp_ratio = $this->player->current_hp/$this->player->max_hp){
-                    case ($hp_ratio <= 0):
-                        $bg_color = "grey";
-                        break;
-                    case($hp_ratio <= 25):
-                        $bg_color = "red";
-                        break;
-                    case($hp_ratio <= 50):
-                        $bg_color = "orange";
-                        break;
-                    default:
-                        $bg_color= "limegreen";
-                        break;
-                }
-                return("<td style='background:$bg_color'>" . $this->player->current_hp . " / " . $this->player->max_hp . "</td>\n");
-            }
-            switch($hp_ratio = $this->opponent->current_hp/$this->opponent->max_hp){
-                case ($hp_ratio <= 0):
-                    $bg_color = "grey";
-                    break;
-                case($hp_ratio <= 25):
-                    $bg_color = "red";
-                    break;
-                case($hp_ratio <= 50):
-                    $bg_color = "orange";
-                    break;
-                default:
-                    $bg_color= "limegreen";
-                    break;
-            }
-            return("<td style='background:$bg_color'>" . $this->opponent->current_hp . " / " . $this->opponent->max_hp . "</td>\n");
-    
-        }
-
-        //TODO give this more flavor text options
-        function narrate_attack($attacker, $dmg, $target){
-            return "$attacker hit $target for $dmg HP!";
-        }
-        function narrate_win($winner){
-        //TODO flavor text for winning
-        echo("Congratulations to $winner!");
-        }
-        //display the player and the opponent
-        function display_table(){
-                            
-            echo ("<form action='fight.php' method='post'> \n");
-
-
-            echo ("<table><tr>");
-            echo ("<td><img src=" . $this->player->get_image() . "></td>");
-            echo ("<td width=10%></td>");
-            echo ("<td><img src=" . $this->opponent->get_image() . "></td>");
-            echo ("\n</tr><tr>");
-            echo ("<td>" . $this->player->get_name() . "</td>");
-            echo ("<td width=10%></td>");
-            echo ("<td>" . $this->opponent->get_name() . "</td>");
-            echo ("\n</tr><tr>");
-            echo ($this->display_hp_bar(true)); 
-            echo ("<td width=10%></td>");
-            echo ($this->display_hp_bar(false));
-
-            echo ("</tr><tr>");
-            $this->player->display_attacks();
-            echo ("</tr><tr>");
-
-            echo ("</tr>\n</table> \n<input type='submit' value='Fight!' action='POST'/></form>");
-        }
-    }
-
+//right now we are only tracking HP in the BATTLE class not the COMBATANT class. may change this later
 
         //class for each fighter in the battledome (player and opponent)
     class Combatant {
@@ -173,7 +90,6 @@
             //if this->get_moves !contains atk throw an error
             $this->current_attack_type = $move;
         }
-        
         //The set_images class handles where the images for the combatant come from. Should be run immediately after instantiation.
         function set_images($host, $is_pet, $direction, $close_attack_img = null, $ranged_attack_img = null, $defended_img = null, $downed_img = null){
             //"host" is the full host name such as https://leopets.net/images
@@ -201,15 +117,7 @@
             
         
 
-        function display_hp(){
-            if ($this->current_hp <= 0)
-                return("<td style='background:grey'>" . $this->current_hp . " / " . $this->max_hp . "</td> \n");
-            if ($this->current_hp/$this->max_hp <= .25)
-                return("<td style='background:red'>" . $this->current_hp . " / " . $this->max_hp . "</td>\n");
-            if ($this->current_hp/$this->max_hp <= .50)
-                return("<td style='background:orange'>" . $this->current_hp . " / " . $this->max_hp . "</td>\n");
-            return("<td style='background:limegreen'>" . $this->current_hp . " / " . $this->max_hp . "</td>\n");
-        }
+
 
         //TODO this should be a part of display handler...
         function display_attacks(){
@@ -257,7 +165,7 @@
             $this->opponent_current_hp = $opponent->get_current_hp();
             $this->opponent_max_hp = $opponent->get_max_hp();
             $this->opponent_moves = $opponent->get_moves();
-            $this->display_handler = $_SESSION["displayhandler"];
+            $this->display_handler = new DisplayHandler();
 
         }
 
@@ -280,13 +188,13 @@
                     }         
                 //current damage calculation is pokemon's minus irrelevant stuff like crits, types, etc
                 if($isPlayer){
-                    $damage = ((2 * $this->player_stats['level'])/5 * $move_power * ($this->player_stats['attack']/($this->opponent_stats['defense']*$defense_boost)))/50;  
+                    $damage = ((2 * $this->player_stats['level'])/5 * $move_power * ($this->player_stats['attack']/($this->opponent_stats['defense']*$defense_boost)))/10;  
                 }
                 else{
-                    $damage = ((2 * $this->opponent_stats['level'])/5 * $move_power * ($this->opponent_stats['attack']/($this->player_stats['defense']*$defense_boost)))/50;
+                    $damage = ((2 * $this->opponent_stats['level'])/5 * $move_power * ($this->opponent_stats['attack']/($this->player_stats['defense']*$defense_boost)))/10;
                 }
                 
-                //TODO add randomness
+                //TODO add randomness, round up
 
                 return ($damage);
         }
@@ -326,7 +234,7 @@
             $opponent_defense_boost = '2';
 
             //determine who is moving first
-            //TODO this is very wet code dry it out
+            //TODO this is very wet code dry it out OH I CAN JUST MAKE THE CHECK WON/LOSS BASED ON SPEED
             switch ($x = $this->player_stats['speed'] - $this->opponent_stats['speed']){
                 case ($x >0): //player is faster
                         //Player damages opponent
@@ -334,7 +242,6 @@
                         echo("Player did $opponent_damage to opponent!");
                         //deal damage to opponent
                         $this->opponent_current_hp -= $opponent_damage;
-                        echo($this->opponent_current_hp);
                         //check if opponent lost
                         if($this->check_loss(false)){
                             $this->end_battle(false);
@@ -344,6 +251,7 @@
                         $player_damage = $this->calculate_damage(false, $move_type, $player_defense_boost);
                         echo("Opponent did $player_damage to player!");
                         //deal damage to opponent
+                        //right now current_hp is being tracked in two places (in battle and in player). Should make it only one location
                         $this->player_current_hp -= $player_damage;
                         //check if opponent lost
                         if($this->check_loss(true)){
@@ -398,8 +306,13 @@
                         }
                     break;
             }
-            $this->display_handler->display_table();
+            $this->display_battle();
         }
+        
+        function display_battle(){
+            $this->display_handler->display_table($this->player, $this->player_current_hp, $this->opponent, $this->opponent_current_hp);
+        }
+
     }
     
 

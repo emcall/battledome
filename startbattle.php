@@ -4,7 +4,8 @@ require "classes.php";
 session_start();
 //TODO check if active battle exists
     if(isset($_SESSION['battle'])){
-        echo "oops it looks like you've already started a battle. ";
+        echo "oops it looks like you've already started a battle.";
+        echo "<a href='fight.php'>Click here to resume</a>";
         return;
     }
 
@@ -19,8 +20,10 @@ session_start();
     $battle = new Battle($player, $opponent);
     $_SESSION['battle'] = $battle;
 
-    $displayhandler = new DisplayHandler($battle);
-    $_SESSION['displayhandler'] = $displayhandler;
-    $displayhandler->display_table($battle);
+
+    $battle->display_battle();
+    //$displayhandler = new DisplayHandler($battle);
+    //$_SESSION['displayhandler'] = $displayhandler;
+    //$displayhandler->display_table($player, $p$opponent, $player->get_moves());
 
     ?>
